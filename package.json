@@ -1,0 +1,23 @@
+{
+  "name": "devtinder",
+  "version": "1.0.0",
+  "description": "tinder for developers",
+  "keywords": [
+    "node",
+    "js",
+    "js",
+    "react",
+    "js"
+  ],
+  "license": "ISC",
+  "author": "Aditi Joshi",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js" 
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
