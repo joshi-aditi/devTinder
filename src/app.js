@@ -88,6 +88,25 @@ app.use("/usermy/viewdata",isValidUser,(req,res,next)=>{
 res.send("yes correct user")
 })
 
+//ERROR HANDLING : 1. try catch block 2. wild card error handling
+
+app.use("/here",(req,res)=>{
+    //db logic or logic of route handling.
+    try{
+        throw new error("Some error occured")
+        res.send("inside here")
+}catch(err){
+        res.status(500).send("Something went wrong...")
+    }
+})
+
+//wild card error handling: 
+app.use("/",(err,req,res,next)=>{//remember the order of req,res that added needed to be as per rules.
+    if(err){
+        res.status(500).send("Error occured");
+    }
+})
+
 // app.use("/",(req,res)=>{ //GENERIC TYPE OF LAST ROUTE HANDLER IF ABOVE NO BODY TYPE HANDLE THEN THIS COULD BE USED.
 //     res.send("/// from here")
 // })
