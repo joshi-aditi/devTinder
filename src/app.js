@@ -2,6 +2,7 @@
 //REQUIRE EXPRESS, CREATE INSTANCE & LISTEN & USE IT...
 
 const express = require("express"); //first will require/need express
+const {isValidUserAdminAuth, isValidUser}  = require("./middlewares/auth")
 const app = express();// create instance type / our server from express.
 
 app.use("/test",(req,res)=>{
@@ -40,9 +41,57 @@ app.delete("/user",(req,res)=>{
     res.send("deleted user sucessfully");
 })
 
-app.use("/",(req,res)=>{
-    res.send("/// from here")
+//EP: 5 MIDDELWARES & ERROR HANDLING
+app.use("/new",(req,res,next)=>{
+    console.log("In first route handler")
+    // res.send("namaste")
+    next();//NEXT IN EXPRESS IS USED TO GO ON NEXT ROUTE HANDLE ...next() = "I'm done, pass control to the next middleware or route"
+// Without it — your request just freezes.
+},
+[(req,res,next)=>{
+    console.log("in 2nd route handler")
+    // res.send("response got from 2nd route handler")
+    next()
+},(req,res,next)=>{
+    console.log("in 3rd route handler")
+    res.send("hello finally")
+    next()
+}])
+
+// WHY THIS NEXT AND ALL NEEDED? I CAN HAVE ONE WHICH HANDLE ALL NoOO.. Why multiple functions this that array and all??? => EG. Authorization types code requires this type of middlewares...
+
+// THIS FUNCTION WHICH U PUT IN MIDDLE ARE CALLED AS MILDDLEWARES... All the functions which it goes through in between are called as middlewares...
+// & the final return response is a request handler..
+
+// ADITI: Middleware is a function which runs between req & res.
+// needed bcz we don't want to repeat the same code in every route.
+
+//CODE EXAMPLE : Handle auth middleware for all get post requests...
+app.use("/admin",isValidUserAdminAuth)
+
+app.get("/admin/getAllData",(req,res,next)=>{
+    res.send("All data sent");
 })
+
+app.get("/admin/deleteData",(req,res,next)=>{
+    res.send("Data deleted");
+})
+
+app.use("/usermy/login",(req,res)=>{
+    res.send("logged in")
+})
+// app.use("/usermy/login",(res)=>{ // ERROR BCZ 3 ARGUEMENTS PLACES ARE FIXED... SO RES xx FIRST...
+//     res.send("logged in")
+// })
+
+app.use("/usermy/viewdata",isValidUser,(req,res,next)=>{
+res.send("yes correct user")
+})
+
+// app.use("/",(req,res)=>{ //GENERIC TYPE OF LAST ROUTE HANDLER IF ABOVE NO BODY TYPE HANDLE THEN THIS COULD BE USED.
+//     res.send("/// from here")
+// })
+
 
 // app.get("/a(bc)+d", (req, res) => {
 //  res.send({ firstName: "Aditi", lastName: "Joshi" });
