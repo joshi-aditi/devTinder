@@ -2,8 +2,31 @@
 //REQUIRE EXPRESS, CREATE INSTANCE & LISTEN & USE IT...
 
 const express = require("express"); //first will require/need express
+require("./config/database")
 const {isValidUserAdminAuth, isValidUser}  = require("./middlewares/auth")
 const app = express();// create instance type / our server from express.
+const connectDB= require("./config/database")
+const User = require("./models/user")
+
+//post api for sign up of user....
+app.post("/signup",async (req,res)=>{
+    //Create a new instance of user model ###
+    const user = new User({
+        firstName: "Aditi",
+        lastName: "Joshi",
+        emailId: "aj@gmail.com",
+        passwrod:"aj@123"
+    })
+    //ALL DB operation like saving data, reading data we need to wrap inside the try catch block... IMP :)
+    try{
+        await user.save();
+        res.send("User added successfully");
+    }
+    catch(err){
+        res.status(400).send("Some error occured." +  err.message);
+    }
+})
+
 
 app.use("/test",(req,res)=>{
     res.send("hello from the server");
@@ -118,6 +141,13 @@ app.use("/",(err,req,res,next)=>{//remember the order of req,res that added need
 // was valid in Express versions using path-to-regexp version 6 or below,
 // which includes roughly Express 4.x and early 5.x alpha releases.
 
-app.listen(3000,()=>{
+connectDB().then(() => {
+    console.log("Db connected successfully")
+    app.listen(3000,()=>{
     console.log("hello aditi listening on port 3000...")
 }); // THIS WILL START LISTING ON PORT 3000. WE CAN SEND REQUEST TO OUR SERVER NOW.
+}).catch((err) => {
+    console.log("Db connection failed.", err)
+});
+
+
