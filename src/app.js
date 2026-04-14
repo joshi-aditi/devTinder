@@ -31,6 +31,71 @@ app.post("/signup",async (req,res)=>{
     }
 })
 
+//API : to get user by email:
+app.get("/userViaEmail",async(req,res)=>{
+    const userEmail = req.body.emailId;
+
+    try{
+        const users = await User.find({emailId:userEmail});//findOne also method present which gives only one record from array of records which gets found.
+        if(users.length===0){
+            res.status(400).send("User not found");
+        }
+        else{
+
+            res.send(users);
+        }
+    }
+    catch(err){
+        res.status(400).send("Something went wrong");
+    }
+})
+
+app.get("/feed",async(req,res)=>{
+    try {
+        const users = await User.find({});//EMPTY FILTER THEN IT GIVES ALL THE RECORD PRESENT IN THAT MODEL.
+        res.send(users);
+    }
+    catch(err){
+        res.status(400).send("Something went wrong");
+    }
+})
+
+// app.get("/userById",async (req,res)=>{
+//     try{
+//         const id = req.query._id;
+//         const user = await User.findById(id);
+//         res.send(user)
+//     }
+//     catch(err){
+//         res.status(400).send("Something went wrong")
+//     }
+// })
+
+//better version...
+app.get("/userById", async (req, res) => {
+    try {
+        const id = req.query._id;
+
+        if (!id) {
+            return res.status(400).send("ID is required");
+        }
+
+        const user = await User.findById(id);
+
+        if (!user) {
+            return res.status(404).send("User not found");
+        }
+
+        res.send(user);
+    } catch (err) {
+        res.status(400).send("Invalid ID");
+    }
+});
+
+// app.get("/userById/:id", async (req, res) => { params way...
+//     const user = await User.findById(req.params.id);
+// });
+
 
 app.use("/test",(req,res)=>{
     res.send("hello from the server");
