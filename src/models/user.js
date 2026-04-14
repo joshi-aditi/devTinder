@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema({
     emailId:{
         type:String
     },
-    passwrod:{
+    password:{
         type:String
     },
     age:{

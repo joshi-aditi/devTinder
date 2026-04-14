@@ -8,15 +8,19 @@ const app = express();// create instance type / our server from express.
 const connectDB= require("./config/database")
 const User = require("./models/user")
 
+app.use(express.json())// IMP @ : MIDDLEWARE : CONVERT INCOMING REQUEST'S JSON INTO THE JS OBJECT.
+
 //post api for sign up of user....
 app.post("/signup",async (req,res)=>{
     //Create a new instance of user model ###
-    const user = new User({
-        firstName: "Aditi",
-        lastName: "Joshi",
-        emailId: "aj@gmail.com",
-        passwrod:"aj@123"
-    })
+    // const user = new User({
+    //     firstName: "AditiR",
+    //     lastName: "Joshi",
+    //     emailId: "aj@gmail.com",
+    //     password:"aj@123"
+    // })
+    const user = new User(req.body);//Dyanmic from the body row json taking the data and storing in the db.
+
     //ALL DB operation like saving data, reading data we need to wrap inside the try catch block... IMP :)
     try{
         await user.save();
