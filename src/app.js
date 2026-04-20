@@ -60,6 +60,17 @@ app.get("/feed",async(req,res)=>{
     }
 })
 
+app.get("/userById",async (req,res)=>{
+    const userId = req.body.userId;
+    console.log("aditi"+ userId)
+    try{
+        const user = await User.findById(userId);
+        res.send(user)
+    }
+    catch(err){
+        res.status(400).send("Something went wrong")
+    }
+})
 // app.get("/userById",async (req,res)=>{
 //     try{
 //         const id = req.query._id;
@@ -95,6 +106,62 @@ app.get("/userById", async (req, res) => {
 // app.get("/userById/:id", async (req, res) => { params way...
 //     const user = await User.findById(req.params.id);
 // });
+
+//delete api: delete a user by id...
+app.delete("/userById",async (req,res)=>{
+    const userId = req.body.userId;
+    try{
+        const user = await User.findByIdAndDelete(userId);
+        res.send("User delete successfully");
+    }
+    catch(err){
+        res.status(400).send("Something went wrong")
+    }
+
+})
+
+app.delete("/userByEmail",async (req,res)=>{
+    const userEmail = req.body.emailId;//THE body passed key name should match with the schema key name... 
+    try{
+        const user = await User.findOneAndDelete({emailId:userEmail});
+        res.send("User delete successfully");
+      }
+    catch(err){
+        res.status(400).send("Something went wrong")
+    }
+})
+
+//Update User api (condition, update, options): ** diff between put and patch. 
+app.patch("/userById",async (req,res)=>{
+    //updating given id user.
+    const userId = req.body.userId;
+    const data = req.body;
+    try{
+        // const user = await User.findByIdAndUpdate(userId,{emailId:"nehajoshi@gmail.com"});
+        const user = await User.findByIdAndUpdate(userId,data,{lean:true});
+        res.send("User updated successfully");
+    }
+    catch(err){
+        res.status(400).send("Something went wrong")
+    }
+})
+
+//update via email id:
+app.patch("/userByEmail",async (req,res)=>{
+    const userEmail = req.body.emailId;
+    const data = req.body;
+    try{
+        const user = await User.findOneAndUpdate({emailId:userEmail},data,{new:true,upsert:false});//new returns updated data, if upsert create if no user found then it creates new and add in that..
+        if (!user) {
+            return res.status(404).send("User not found"); // ✅ FIX wrong email addded then to success bcz this case was not handled. @IMP..
+        }
+        res.send("User updated successfully")
+    }
+    catch(err){
+        res.status(400).send("Something went wrong");
+    }
+})
+
 
 
 app.use("/test",(req,res)=>{
