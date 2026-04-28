@@ -138,11 +138,11 @@ app.patch("/userById",async (req,res)=>{
     const data = req.body;
     try{
         // const user = await User.findByIdAndUpdate(userId,{emailId:"nehajoshi@gmail.com"});
-        const user = await User.findByIdAndUpdate(userId,data,{lean:true});
+        const user = await User.findByIdAndUpdate(userId,data,{lean:true,runValidators: true});
         res.send("User updated successfully");
     }
     catch(err){
-        res.status(400).send("Something went wrong")
+        res.status(400).send("Something went wrong"+ err)
     }
 })
 
@@ -151,7 +151,7 @@ app.patch("/userByEmail",async (req,res)=>{
     const userEmail = req.body.emailId;
     const data = req.body;
     try{
-        const user = await User.findOneAndUpdate({emailId:userEmail},data,{new:true,upsert:false});//new returns updated data, if upsert create if no user found then it creates new and add in that..
+        const user = await User.findOneAndUpdate({emailId:userEmail},data,{new:true,upsert:false,runValidators:true});//new returns updated data, if upsert create if no user found then it creates new and add in that..
         if (!user) {
             return res.status(404).send("User not found"); // ✅ FIX wrong email addded then to success bcz this case was not handled. @IMP..
         }
