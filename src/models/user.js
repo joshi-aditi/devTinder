@@ -1,5 +1,8 @@
 //databse level/schema level ip santization & api level ip data santization...
 const mongoose = require("mongoose")
+const validator = require("validator")
+// Validators = check data
+// Sanitizers = clean data
 
 //Schema create then model create
 
@@ -25,11 +28,21 @@ const userSchema = new mongoose.Schema(
         required: true,
         unique: true,
         lowercase: true,
-        trim: true
+        trim: true,
+        validate(value){
+            if(!validator.isEmail(value)){
+                throw new Error ("Email is not valid.")
+            }
+        }
     },
     password:{
         type:String,
-        required: true
+        required: true,
+        validate(value){
+            if(!validator.isStrongPassword(value)){
+                throw new Error("Password is not strong.")
+            }
+        }
     },
     age:{
         type: Number,
@@ -59,7 +72,12 @@ const userSchema = new mongoose.Schema(
     },
     photoUrl: {
         type: String,
-        default: "https://www.pngmart.com/files/23/Profile-PNG-Photo.png"
+        default: "https://www.pngmart.com/files/23/Profile-PNG-Photo.png",
+        validate(value){
+            if(!validator.isURL(value)){
+                throw new Error ("PhotoUrl is not correct.")
+            }
+        }
     }
 },{
     timestamps: true
