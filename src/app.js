@@ -7,6 +7,8 @@ const { isValidUserAdminAuth, isValidUser } = require("./middlewares/auth")
 const app = express();// create instance type / our server from express.
 const connectDB = require("./config/database")
 const User = require("./models/user")
+const {validateReqData} = require("./utils/validation")
+const bcrypt = require("bcrypt");
 
 app.use(express.json())// IMP @ : MIDDLEWARE : CONVERT INCOMING REQUEST'S JSON INTO THE JS OBJECT.
 
@@ -23,21 +25,52 @@ app.post("/signup", async (req, res) => {
     //ALL DB operation like saving data, reading data we need to wrap inside the try catch block... IMP :)
     try {
         //IN SIGNUP ONLY REQUIRED 4 FILEDS TYPE SHOULD ONLY BE PASSED AND TAKEN FROM USER OTHER ANY NO NEED.
-        const allowedFieldsAre = ["firstName", "lastName", "emailId", "password"];
-        if (!req.body || Object.keys(req.body).length === 0) {
-            throw new Error("Request body cannot be empty");
-        }
-        const allowedFieldsData = Object.keys(req.body).every((key) => {
-            return allowedFieldsAre.includes(key)
-        })
-        if (!allowedFieldsData) { throw new Error("Given fields are not correct"); }
-        const user = new User(req.body);//Dyanmic from the body row json taking the data and storing in the db.
+        // const allowedFieldsAre = ["firstName", "lastName", "emailId", "password"];
+        // if (!req.body || Object.keys(req.body).length === 0) {
+        //     throw new Error("Request body cannot be empty");
+        // }
+        // const allowedFieldsData = Object.keys(req.body).every((key) => {
+        //     return allowedFieldsAre.includes(key)
+        // })
+        // if (!allowedFieldsData) { throw new Error("Given fields are not correct"); }
+
+        //1. VALIDATE THE DATA OF REQ BODY.
+        validateReqData(req);
+
+        //2. ENCRYPT THE PASSWORD AND STORE THAT AS USER....
+        const {firstName,lastName,emailId,password} = req.body;
+        const passwordHash = await bcrypt.hash(password,10);
+        
+        const user = new User({ //with this only the given fields will go no other key value which ever extra given..
+            firstName,
+            lastName,
+            emailId,
+            password: passwordHash
+        });//Dyanmic from the body row json taking the data and storing in the db. NEVER DIRECTLY PASS THE REQ.BODY IN SAVE ...
         await user.save();
         res.send("User added successfully");
     }
     catch (err) {
         res.status(400).send("Some error occured." + err.message);
     }
+})
+
+app.post("/login", async (req,res)=>{
+    // emailid and password user adds then will validate both of that and then logini the user successfully.
+    try{
+        const {emailId,password} = req.body;
+
+        const user = await User.findOne({emailId:emailId});
+        if(!user) {throw new Error("Invalid Credentials.");}
+
+        const isPasswordValid = await bcrypt.compare(password,user.password)
+        if(!isPasswordValid) {throw new Error ("Invalid Credentials.");}
+
+        res.send("Login successfully")
+    }catch (err) {
+        res.status(400).send("Some error occured " + err.message);
+    }
+
 })
 
 //API : to get user by email:
@@ -71,7 +104,6 @@ app.get("/feed", async (req, res) => {
 
 app.get("/userById", async (req, res) => {
     const userId = req.body.userId;
-    console.log("aditi" + userId)
     try {
         const user = await User.findById(userId);
         res.send(user)
