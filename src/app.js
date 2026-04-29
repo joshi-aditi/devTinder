@@ -9,8 +9,11 @@ const connectDB = require("./config/database")
 const User = require("./models/user")
 const {validateReqData} = require("./utils/validation")
 const bcrypt = require("bcrypt");
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 
 app.use(express.json())// IMP @ : MIDDLEWARE : CONVERT INCOMING REQUEST'S JSON INTO THE JS OBJECT.
+app.use(cookieParser());//Direct in req we can't get the cookie we need to parse it so that in req of other api we can get that token from cookie...
 
 //post api for sign up of user....
 app.post("/signup", async (req, res) => {
@@ -66,11 +69,36 @@ app.post("/login", async (req,res)=>{
         const isPasswordValid = await bcrypt.compare(password,user.password)
         if(!isPasswordValid) {throw new Error ("Invalid Credentials.");}
 
+        //EMAIL AND PASSWORD VALIDATED NOW WILL CREATE JWT TOKEN AND STORE IN COKKIE AND PASS THAT.
+        
+        //JWT STEPS:
+        
+        //1. Create a jwt token
+        const token = jwt.sign({_id:user._id},"DEV@joshi24");
+
+        //2. add the token to cookie & send response.
+        res.cookie("token",token)
         res.send("Login successfully")
     }catch (err) {
         res.status(400).send("Some error occured " + err.message);
     }
 
+})
+
+app.get("/profile", async (req,res)=>{
+    try{
+        const {token} = req.cookies;
+        if(!token){
+            throw new Error ("Invalid token");
+        }
+        const decodedMsg = jwt.verify(token,"DEV@joshi24");
+        const user = await User.findOne({_id: decodedMsg._id})
+        if(!user){throw new Error ("User not found");}
+        res.send("got profile of: " + user.firstName);
+    }
+    catch (err) {
+        res.status(400).send("Some error occured " + err.message);
+    }
 })
 
 //API : to get user by email:
