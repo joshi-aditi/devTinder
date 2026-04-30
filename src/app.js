@@ -3,7 +3,7 @@
 
 const express = require("express"); //first will require/need express
 require("./config/database")
-const { isValidUserAdminAuth, isValidUser, userAuth } = require("./middlewares/auth")
+const { isValidUserAdminAuth, isValidUser, userAuth} = require("./middlewares/auth")
 const app = express();// create instance type / our server from express.
 const connectDB = require("./config/database")
 const User = require("./models/user")
@@ -66,7 +66,7 @@ app.post("/login", async (req,res)=>{
         const user = await User.findOne({emailId:emailId});
         if(!user) {throw new Error("Invalid Credentials.");}
 
-        const isPasswordValid = await bcrypt.compare(password,user.password)
+        const isPasswordValid = await user.comparePassword (password);
         if(!isPasswordValid) {throw new Error ("Invalid Credentials.");}
 
         //EMAIL AND PASSWORD VALIDATED NOW WILL CREATE JWT TOKEN AND STORE IN COKKIE AND PASS THAT.
@@ -74,7 +74,7 @@ app.post("/login", async (req,res)=>{
         //JWT STEPS:
         
         //1. Create a jwt token
-        const token = jwt.sign({_id:user._id},"DEV@joshi24",{ expiresIn: "7d" }); //TOKEN : expiresIn @... 7day.
+        const token = user.getJwt(); //TOKEN : expiresIn @... 7day.
 
         //2. add the token to cookie & send response.
         res.cookie("token",token, {expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)})//Cookies: expires @... 7day, for 8hr = 8*3600000

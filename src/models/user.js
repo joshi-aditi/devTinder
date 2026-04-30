@@ -1,6 +1,8 @@
 //databse level/schema level ip santization & api level ip data santization...
 const mongoose = require("mongoose")
 const validator = require("validator")
+const jwt = require("jsonwebtoken")
+const bcrypt = require("bcrypt")
 // Validators = check data
 // Sanitizers = clean data
 
@@ -82,6 +84,17 @@ const userSchema = new mongoose.Schema(
 },{
     timestamps: true
 });
+
+userSchema.methods.getJwt = function(){
+    const user = this;
+    return jwt.sign({_id:user._id},"DEV@joshi24",{ expiresIn: "7d" });
+}
+
+userSchema.methods.comparePassword  = async function(passwordInputByUser){
+    const user = this;
+    const passwordHash = await bcrypt.compare(passwordInputByUser,user.password)
+    return passwordHash;
+}
 
 
 //MODEL
