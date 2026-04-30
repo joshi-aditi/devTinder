@@ -3,7 +3,7 @@
 
 const express = require("express"); //first will require/need express
 require("./config/database")
-const { isValidUserAdminAuth, isValidUser } = require("./middlewares/auth")
+const { isValidUserAdminAuth, isValidUser, userAuth } = require("./middlewares/auth")
 const app = express();// create instance type / our server from express.
 const connectDB = require("./config/database")
 const User = require("./models/user")
@@ -74,10 +74,10 @@ app.post("/login", async (req,res)=>{
         //JWT STEPS:
         
         //1. Create a jwt token
-        const token = jwt.sign({_id:user._id},"DEV@joshi24");
+        const token = jwt.sign({_id:user._id},"DEV@joshi24",{ expiresIn: "7d" }); //TOKEN : expiresIn @... 7day.
 
         //2. add the token to cookie & send response.
-        res.cookie("token",token)
+        res.cookie("token",token, {expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)})//Cookies: expires @... 7day, for 8hr = 8*3600000
         res.send("Login successfully")
     }catch (err) {
         res.status(400).send("Some error occured " + err.message);
@@ -85,16 +85,17 @@ app.post("/login", async (req,res)=>{
 
 })
 
-app.get("/profile", async (req,res)=>{
+app.get("/profile", userAuth, async (req,res)=>{
     try{
-        const {token} = req.cookies;
-        if(!token){
-            throw new Error ("Invalid token");
-        }
-        const decodedMsg = jwt.verify(token,"DEV@joshi24");
-        const user = await User.findOne({_id: decodedMsg._id})
-        if(!user){throw new Error ("User not found");}
-        res.send("got profile of: " + user.firstName);
+        //THIS ALL WOULD NOW BE HANDLED VIA MIDDLEWARE.
+        // const {token} = req.cookies;
+        // if(!token){
+        //     throw new Error ("Invalid token");
+        // }
+        // const decodedMsg = jwt.verify(token,"DEV@joshi24");
+        // const user = await User.findOne({_id: decodedMsg._id})
+        // if(!user){throw new Error ("User not found");}
+        res.send("got profile of: " + req.user.firstName);
     }
     catch (err) {
         res.status(400).send("Some error occured " + err.message);
@@ -118,6 +119,11 @@ app.get("/userViaEmail", async (req, res) => {
     catch (err) {
         res.status(400).send("Something went wrong");
     }
+})
+
+app.post("/sendConnectionRequest",userAuth, (req,res,next)=>{
+    //here in req.user we get the user from the middleware.
+    res.send(req.user.firstName + " Sent connection request.");
 })
 
 app.get("/feed", async (req, res) => {
